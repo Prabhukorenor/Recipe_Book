@@ -6,7 +6,7 @@ export default function Recipe()
     const[ingredients,setIngredients]=useState("");
     const[instructions,setInstructions]=useState("");
     const[recipes,setRecipes]=useState([]);
-
+    const[editingId,setEditingId]=useState(null);
     //Save recipe to localstroage.
     const saveRecipes=(updatedRecipes)=>{
         localStorage.setItem("recipes",JSON.stringify(updatedRecipes));
@@ -27,23 +27,43 @@ export default function Recipe()
             alert("Please fill all required fields...!");
             return;
         }
+        if(editingId)
+        {
+            const updatedRecipes=recipes.map((i)=>
+            i.id===editingId ? {...i,name:recipeName,ingredients,instructions} : i
+            );
+            saveRecipes(updatedRecipes);
+            setEditingId(null);
+        }
+        else
+        {
         const newRecipe={
             id:Date.now(),name:recipeName,ingredients,instructions
         }
-        saveRecipes([...recipes,newRecipe])
-
+        saveRecipes([...recipes,newRecipe]);
+        }
         //clear form data
         setRecipeName("");
         setIngredients("");
         setInstructions("");
     }
+    const handleDelete=(id)=>{
+        const updatedRecipes=recipes.filter((r)=>r.id!==id);
+        saveRecipes(updatedRecipes);
+    }
+    const handleEdit=(i)=>{
+        setRecipeName(i.name);
+        setIngredients(i.ingredients);
+        setInstructions(i.instructions);
+        setEditingId(i.id);
+    }
 
     return(
     <>
         <div>
-            <h1>Recipe Book</h1>
+            <h1>🍲 Recipe Book</h1>
         <form onSubmit={handleSubmit}>
-            <h2>Add Recipe</h2>
+            <h2>{ editingId ? "Edit Recipe" : "Add Recipe"}</h2>
             <label>Name:</label> <br/>
             <input type="text" value={recipeName} onChange={(e)=>setRecipeName(e.target.value)}/> <br/>
 
@@ -53,7 +73,7 @@ export default function Recipe()
             <label>Instructions:</label> <br/>
             <textarea value={instructions} onChange={(e)=>setInstructions(e.target.value)}></textarea> <br/>
 
-            <button type="submit">Add Recipe</button>
+            <button type="submit">{editingId ? "Update Recipe" :"Add Recipe"}</button>
         </form>
 
         <h3>All Recipes</h3>
@@ -64,8 +84,8 @@ export default function Recipe()
                 <h4>Recipe Name:{i.name}</h4>
                 <p><strong>Ingredients</strong>{i.ingredients}</p>
                 <p><strong>Instructions:</strong>{i.instructions}</p>
-                <button>Edit</button>
-                <button>Delete</button>
+                <button onClick={()=>handleEdit(i)}>Edit</button>
+                <button onClick={()=>handleDelete(i.id)}>Delete</button>
               </div>  
             ))
         }
